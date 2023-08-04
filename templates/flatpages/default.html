@@ -26,7 +26,15 @@
 	{% if not forloop.last %}
 			<li><a href="{% url m.url_name %}">{{m.title}}</a></li>
 	{% else %}
-			<li class="last"><a href="{% url m.url_name %}">{{m.title}}</a></li>
+			{% if request.user.username %}
+				<li class="last"> Вы вошли на сайт под именем: {{request.user.username}} |
+					{% if is_not_author %}
+						<button> <a href="sign/upgrade/"> Стать автором </a> </button>
+					{% endif %}
+					| <a href="{% url 'logout' %}">Выйти</a> </li>
+			{% else %}
+				<li class="last"><a href="{{ m.url_name }}">{{m.title}}</a></li>
+			{% endif %}
 	{% endif %}
 {% endfor %}
 			</ul>

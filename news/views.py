@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.urls import reverse_lazy
 from django.http import HttpResponse, HttpResponseNotFound, Http404
 from django.shortcuts import render
@@ -8,7 +9,7 @@ from .filters import PostFilter
 
 menu = [{'title': "О сайте", 'url_name': 'about'},
         {'title': "Обратная связь", 'url_name': 'contact'},
-        {'title': "Войти", 'url_name': 'login'}
+        {'title': "Войти / Зарегистрироваться", 'url_name': '/accounts/login'}
 ]
 
 class PostList(ListView):
@@ -22,7 +23,9 @@ class PostList(ListView):
         context['news'] = Post.objects.all()
         context['menu'] = menu
         context['title'] = 'Все посты'
+        context['is_not_author'] = not self.request.user.groups.filter(name='authors').exists()
         return context
+
 
 class PostListNews(ListView):
     model = Post
@@ -106,18 +109,34 @@ class PostDetail(DetailView):
     model = Post
     template_name = 'post.html'
     context_object_name = 'post'
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['menu'] = menu
+        context['title'] = 'Все посты'
+        return context
 
 class PostDetailNews(DetailView):
     model = Post
     template_name = 'post.html'
     context_object_name = 'post'
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['menu'] = menu
+        context['title'] = 'Все посты'
+        return context
 
 class PostDetailArticles(DetailView):
     model = Post
     template_name = 'post.html'
     context_object_name = 'post'
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['menu'] = menu
+        context['title'] = 'Все посты'
+        return context
 
-class PostCreate(CreateView):
+class PostCreate(PermissionRequiredMixin, CreateView):
+    permission_required = ('news.add_post',)
     form_class = PostForm
     model = Post
     template_name = 'post_edit.html'
@@ -129,21 +148,42 @@ class PostCreate(CreateView):
             post.position = 'AR'
         post.save()
         return super().form_valid(form)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['menu'] = menu
+        context['title'] = 'Все посты'
+        return context
 
-class PostUpdate(UpdateView):
+class PostUpdate(PermissionRequiredMixin, UpdateView):
+    permission_required = ('news.change_post',)
     form_class = PostForm
     model = Post
     template_name = 'post_edit.html'
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['menu'] = menu
+        context['title'] = 'Все посты'
+        return context
 
-class NewsDelete(DeleteView):
+class NewsDelete(LoginRequiredMixin, DeleteView):
     model = Post
     template_name = 'post_delete.html'
     success_url = reverse_lazy('news_all')
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['menu'] = menu
+        context['title'] = 'Все посты'
+        return context
 
-class ArticlesDelete(DeleteView):
+class ArticlesDelete(LoginRequiredMixin, DeleteView):
     model = Post
     template_name = 'post_delete.html'
     success_url = reverse_lazy('articles_all')
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['menu'] = menu
+        context['title'] = 'Все посты'
+        return context
 
 def contact(request):
     return HttpResponse("Обратная связь")

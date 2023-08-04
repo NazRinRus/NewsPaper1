@@ -1,4 +1,5 @@
-from django.urls import path
+from django.contrib import admin
+from django.urls import path, include
 
 from .views import *
 
@@ -19,5 +20,5 @@ urlpatterns = [
    path('articles/<int:pk>/delete/', ArticlesDelete.as_view(), name='articles_delete'),
    path('about/', about, name='about'),
    path('contact/', contact, name='contact'),
-   path('login/', login, name='login'),
+   path('sign/', include('sign.urls')),
 ]
